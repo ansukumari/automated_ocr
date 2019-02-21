@@ -1,37 +1,39 @@
-import tkinter
+import tkinter as tk
 from PIL import ImageTk, Image
 from functools import partial
-import json, os
+import json, os, shutil, datetime
+from os import walk
 from tkinter.messagebox import showinfo
 from pdf2image import convert_from_path
 from tkinter.filedialog import askopenfilename as af
 
-top = tkinter.Tk()
+top = tk.Tk()
 path = af(filetypes=[("Image File",'.jpg'), ("Image File",'.pdf'), ("Image File",'.jpeg'), ("Image File",'.png')])
-print(type(path), path)
+if not path: 
+    top.destroy()
+    exit()
 ext = path.split('.')[1]
 if ext == 'pdf': 
     page = convert_from_path(path, 500)
-    for p in page: p.save('out.jpg', 'JPEG')
-    path = 'out.jpg'
+    for p in page: p.save('img/out.jpg', 'JPEG')
+    path = 'img/out.jpg'
 pic = Image.open(path)
 x0 = y0 = 0
 
 if pic.size[1] > 700: pic = pic.resize((int(700*pic.size[0]/pic.size[1]), 700), Image.ANTIALIAS)
 img = ImageTk.PhotoImage(pic)
-frame = tkinter.Canvas(top, width=pic.size[0]*2, height=pic.size[1], cursor="cross")
+frame = tk.Canvas(top, width=pic.size[0]*2, height=pic.size[1], cursor="cross")
 frame.create_image(0, 0, image=img, anchor='nw')
 rec = frame.create_rectangle(0, 0, 0, 0)
 temp  = pic.crop((0, 0, 0, 0))
 cpic = ImageTk.PhotoImage(temp)
 crec = frame.create_image(0, 0, image=cpic)
 
-col_list = ['seller address', 'buyer address', 'date', 'invoice no', 'supplier ref', 'model name', 'price', 'quantity', 'amount', 'tax %', 'tax amount', 'total']
+col_list = []
+with open('cols.json', 'r') as fp: col_list = json.load(fp)
 col_ft = {}
 
-def add_col(): pass
-
-menu = tkinter.Menu(top, tearoff=0)
+menu = tk.Menu(top, tearoff=0)
 def define_col(col):
     print(col, frame.bbox(rec))
     c = []
@@ -41,7 +43,22 @@ def define_col(col):
 
     print(col_ft)
 
-for col in col_list: menu.add_command(label=col, command=partial(define_col, col))#lambda: define_col(col))
+def add_col():
+    root = tk.Toplevel(top)
+    e=tk.Entry(root)
+    e.pack()
+    def cleanup():
+        col=e.get()
+        root.destroy()
+        col_list.append(col)
+        define_col(col)
+        menu.add_command(label=col, command=partial(define_col, col))
+        with open('cols.json', 'w') as fp: json.dump(col_list, fp)
+
+    b=tk.Button(root,text='Add Column',command=cleanup)
+    b.pack()
+
+for col in col_list: menu.add_command(label=col, command=partial(define_col, col))
 menu.add_separator()
 menu.add_command(label='+ Add Column', command=add_col)
 
@@ -69,18 +86,25 @@ frame.bind("<Button-3>", onRightClick)
 frame.pack(side="top", fill="both", expand=True)
 
 def onSaveClick():
-    data = []
+    data = {}
+    col_ft['created'] = str(datetime.datetime.now())
     if os.path.isfile('template.json'): 
         with open('template.json', 'r') as fp: data = json.load(fp)
-    data.append(col_ft)
-    with open('template.json', 'w') as fp: json.dump(data, fp)
-    try: 
-        pic.save('templates/' + str(len(data)-1) + '.jpg')
-        showinfo('Alert', 'Template Saved!')
-    except: showinfo('Alert', 'Open a file first!')
+    
+    f = []
+    for filenames in walk('templates'):
+        f.extend(map(int, filenames[2]))
+        break
 
-but = tkinter.Button(frame, text='Save Template', anchor='w', command=onSaveClick)
+    fname = str(max(f)+1) if f else '1'
+    data[fname] = col_ft
+    with open('template.json', 'w') as fp: json.dump(data, fp)
+    shutil.copyfile(path, 'templates/'+fname)
+    showinfo('Alert', 'Template Saved!')
+    top.destroy()
+
+but = tk.Button(frame, text='Save Template', command=onSaveClick)
 frame.create_window(pic.size[0]+5, pic.size[1]//2, anchor='nw', window=but)
 
-top.title("Image Selector")
+top.title("Create Template")
 top.mainloop()
