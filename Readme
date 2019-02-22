@@ -1,0 +1,82 @@
+Automated OCR
+-------------------------------------------------
+This project is created to automatically compile information from invoices, using Google Vision API to convert document(image or pdf files) to texts, and save the data collected in tabular form (json file) for easy access.
+
+
+Prerequisites:
+-------------------------------------------------
+    Python 3.5 or above
+    Google Cloud Platform (GCP) Project
+    Authenticated Cloud API (GCP Services)
+
+
+Set Up Prerequisites:
+-------------------------------------------------
+    1. Install Python 3
+    (refer: https://www.digitalocean.com/community/tutorial_series/how-to-install-and-set-up-a-local-programming-environment-for-python-3)
+    2. Create GCP Project 
+    (refer: https://cloud.google.com/functions/docs/tutorials/ocr)
+    3. Authenticate Cloud API 
+    (refer: https://cloud.google.com/docs/authentication/getting-started)
+
+
+Project Structure:
+-------------------------------------------------
+
+    automated_ocr/
+    |----codes/
+    |    |----convert_files.py
+    |    |----create_temp.py
+    |    |----detect_text.py
+    |----img/
+    |    |----banner.jpg
+    |    |----tmp.jpg
+    |----output/
+    |    |----cols.json
+    |    |----output.xlsx
+    |    |----result.json
+    |    |----template.json
+    |----processed/                    <--[contains all the processed files]
+    |----templates/                    <--[contains the template images]
+    |----unprocessed/                  <--[contains files that needs to be processed or couldn't be processed]
+    |----main.py
+    |----requirements.txt
+
+
+Quickstart:
+-------------------------------------------------
+1. Install dependencies,
+    pip install -r requirements.txt
+
+2. Run main,
+    run command: ```python3 main.py```
+
+
+Functionalities:
+-------------------------------------------------
+Page 1: Process Images
+    Select input folder: The browse button helps the user select the folder in which all unprocessed files are kept. The default route is 'unprocessed/'.
+    Execute: On pressing this button data is extracted from all files kept in the input folder, mapped by the template that best fits the file, and stored in the json file with respective columns/fields.
+    Summary: The summary of all files from which data could be extracted and the files that did not match any template are presented next to the summary button as soon as the execution finishes.
+    Output: On clicking this button the created json file is converted to excel and opens the excel sheet. 
+
+Page 2: Manage / New Template
+    Review existing templates: 
+        Opens a popup that displays a list of all the templates yet made.
+        Show: Opens the selected template image in a new window.
+        Delete: Deletes the selected template file and the respective information from the template json file.
+    Define New Template:
+        Browse: Lets the user browse the folder where unprocessed files are kept. Defaults to 'unprocessed/'. 
+        Unprocessed Files: Shows all the files present in the formerly selected folder.
+        Create: Opens another window that helps the user create a template.
+        Assign: Force assigns a template selected by user to the unprocessed file selected from the left panel.
+    
+Create Template:
+    It is an independent python script that helps user create a template manually.
+    To create a template, first select an image (or pdf) as a template then draw a rectangle over a section in the image and assign a particular predefined column to it or create a new column by clicking the 'Add Column' button.
+    The fields 'Model name', 'Date' and 'Total' are compulsory to create a template.
+
+Output:
+    The result of extracted text is stored in a json file named 'result.json' in outputs folder.
+    A separate template.json file is created for storing the template information in outputs folder.
+    An excel sheet is created with the help of result.json for a better representation of the gathered data.

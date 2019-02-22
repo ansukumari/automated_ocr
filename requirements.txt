@@ -10,4 +10,4 @@ pdf2image==1.4.1
 Pillow==5.4.1
 python-dateutil==2.8.0
 pytz==2018.9
-plotly==3.6.1
+tkinter==8.6

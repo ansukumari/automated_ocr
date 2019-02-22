@@ -92,7 +92,7 @@ def showTemps():
 
 def browse(wid):
     filename = filedialog.askdirectory()
-    wid.configure(text=filename)
+    if filename: wid.configure(text=filename)
 
 '''Top Level/Root'''
 root = tk.Tk()
@@ -126,11 +126,9 @@ nb.place(rely=0.15, relwidth=1, relheight=0.85)
 ''' Notebook Pages '''
 p1 = ttk.Frame(nb)
 p2 = ttk.Frame(nb)
-p3 = ttk.Frame(nb)
 
 nb.add(p1, text='Process Image')
 nb.add(p2, text='Manage / New Template')
-nb.add(p3, text='View Output')
 
 
 ''' Page# 1 | Process Images'''
