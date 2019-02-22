@@ -1,59 +1,9 @@
 from tkinter import ttk
-import tkinter as tk, os, json, threading
+import tkinter as tk, os, json
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import messagebox as mb
 from convert_files import read, forceTemp
-
-
-class GifLabel(tk.Label):
-    def __init__(self, master, filename):
-        im = Image.open(filename)
-        seq =  []
-        try:
-            while 1:
-                seq.append(im.copy())
-                im.seek(len(seq)) # skip to next frame
-        except EOFError:
-            pass # we're done
-
-        try:
-            self.delay = im.info['duration']
-        except KeyError:
-            self.delay = 100
-
-        first = seq[0].convert('RGBA')
-        self.frames = [ImageTk.PhotoImage(first)]
-
-        tk.Label.__init__(self, master, image=self.frames[0], bg='white')
-
-        temp = seq[0]
-        for image in seq[1:]:
-            temp.paste(image)
-            frame = temp.convert('RGBA')
-            self.frames.append(ImageTk.PhotoImage(frame))
-
-        self.idx = 0
-
-        self.cancel = self.after(self.delay, self.play)
-
-    def play(self):
-        self.config(image=self.frames[self.idx])
-        self.idx += 1
-        if self.idx == len(self.frames):
-            self.idx = 0
-        self.cancel = self.after(self.delay, self.play)        
-
-    # root = Tk()
-    # anim = MyLabel(root, 'animated.gif')
-    # anim.pack()
-
-    # def stop_it():
-    #     anim.after_cancel(anim.cancel)
-
-    # Button(root, text='stop', command=stop_it).pack()
-
-    # root.mainloop()
 
 def getText():
     import pandas as pd
@@ -105,8 +55,10 @@ def showTemps():
     lb.pack(side='left', fill='both', expand=1)
 
     data = {}
-    with open('template.json', 'r') as fp: data = json.load(fp)
-    for k in data: lb.insert('end', '{:>20}     |      {:20}'.format('Template '+k, data[k]['created'].split(' ')[0]))
+    try:
+        with open('template.json', 'r') as fp: data = json.load(fp)
+        for k in data: lb.insert('end', '{:>20}     |      {:20}'.format('Template '+k, data[k]['created'].split(' ')[0]))
+    except: pass
 
     def selt(event): 
         global tname
@@ -199,36 +151,20 @@ def execute():
     pros_files = [os.path.join(pathp1.cget('text'), fl) for fl in os.listdir(pathp1.cget('text'))]
     i, total = 0, len(pros_files)
     for pf in pros_files: 
-        pros.config(text='Processing: {}/{}'.format(i, total))
-        read(pf); i += 1
-        print(pf)
+        try: 
+            read(pf); i += 1
+            pros.config(text='Processing: {}/{}'.format(i, total))
+        except Exception as e: 
+            info = 'Please create a template first.'
+            if type(e).__name__ == 'DefaultCredentialsError': 
+                info = 'Please set GOOGLE APPLICATION CREDENTIALS.'
+            mb.showinfo('Alert', info)
+            break
+        
     left = len(os.listdir(pathp1.cget('text')))
     pl.config(text='Processed: '+str(total-left))
     cpl.config(text='Cannot be processed: '+str(left))
     
-''' # t2 = threading.Thread(target=lambda: read(pathp1.cget('text')))
-    def tfun(): 
-        import time
-        time.sleep(5)
-    t2 = threading.Thread(target=tfun)
-    t2.start()
-    pbar = ttk.Progressbar(p1, orient=tk.HORIZONTAL, length=100,  mode='indeterminate')
-    pbar.place(relx=col2, rely=row2, relwidth=0.5)
-    t1 = threading.Thread(target=pbar.start)
-    t1.start()
-    t2.join()
-    mb.showinfo('Alert', 'done')
-    # pbar.stop()
-    # pbar.destroy()
-
-    # f = tk.Frame(p1)
-    # x, y = 3, 5
-    # tk.Label(f, text='Processing '+str(x)+'/'+str(y)).pack(side='bottom') 
-    # GifLabel(f, 'sm2.gif').pack(side='bottom')
-    # def stop(event): event.widget.destroy()
-    # f.bind("<Button-1>", stop)
-    # f.place(relx=col2, rely=row2-0.1)
-    # GifLabel(p1, 'check.gif').place(relx=0.31, rely=0.30)'''
 tk.Button(p1, text='Execute', width=btn_width, command=execute).place(relx=col1, rely=row2)
 
 tk.Button(p1, text='Summary', width=btn_width).place(relx=col1, rely=row3)
@@ -277,62 +213,21 @@ lst.pack(side='left', fill='both', expand=1)
 def showPic(event): openPic(pathp2.cget('text')+'/'+event.widget.get(event.widget.curselection()))
 lst.bind('<Double-Button>', showPic)
 
-
 def refersh():
     lst.delete(0, 'end')
     for f in os.listdir(pathp2.cget('text')): lst.insert('end', f)
-# tk.Button(p2, text='Refresh', width=btn_width, command=refersh).place(relx=col3, rely=row3)
 def createTemp(): os.system('python create_temp.py')
 tk.Button(p2, text='Create', width=btn_width, command=createTemp).place(relx=col3, rely=row3+0.1)
 def assign():
-    # try:
-    if 1:
-        imname = lst.get(lst.curselection())
-        path = os.path.join(pathp2.cget('text'), imname)
-        showTemps()
-        print(tname, type(tname))
-        forceTemp(path, tname)
-
-        # seltmp = tk.Toplevel()
-        # tfr = tk.Frame(seltmp, width=seltmp.winfo_width(), height=seltmp.winfo_height())
-        # tfr.pack()
-        # yscroll = tk.Scrollbar(tfr, orient=tk.VERTICAL)
-        # tlst = tk.Listbox(tfr, yscrollcommand=yscroll.set)
-        # yscroll.config(command=tlst.yview)
-        # yscroll.pack(side='right', fill='y')
-        # tk.Label(tfr, text='Unprocessed Files').pack(side='top')
-        # tlst.pack(side='left', fill='both', expand=1)
-        
-        
-        # seltmp.title('Select a template')
-        # seltmp.mainloop()
-
-    
-    # except: mb.showinfo('Alert', 'Please select a file from the left panel to assign a template to it.')
+    try: imname = lst.get(lst.curselection())
+    except: 
+        mb.showinfo('Alert', 'Please select a file from the left panel to assign a template to it.')
+        return
+    path = os.path.join(pathp2.cget('text'), imname)
+    showTemps()
+    try: forceTemp(path, tname)
+    except: return
 tk.Button(p2, text='Assign', width=btn_width, command=assign).place(relx=col3, rely=row3+0.2)
 refersh()
-
-''' Page# 3 | View Output '''
-
-# xscroll = tk.Scrollbar(p3, orient=tk.HORIZONTAL)
-# yscroll = tk.Scrollbar(p3, orient=tk.VERTICAL)
-# txt = tk.Listbox(p3, yscrollcommand=yscroll.set, xscrollcommand=xscroll.set)
-
-# yscroll.config(command=txt.yview)
-# yscroll.pack(side='right', fill='y')
-
-# xscroll.config(command=txt.xview)
-# xscroll.pack(side='bottom', fill='x')
-
-# data = []
-# with open('result.json', 'r') as fp: data = json.load(fp)
-
-# keys = [key for key in data[0]] 
-# val = []
-# for d in data: val.append([d[k] for k in keys])
-# tk.Label(p3, text=keys).pack(side='top')
-# txt.pack(side='left', fill='both', expand=1)
-# for i in val: txt.insert('end', i)
-
 
 root.mainloop()

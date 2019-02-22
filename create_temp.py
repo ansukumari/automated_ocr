@@ -35,13 +35,9 @@ col_ft = {}
 
 menu = tk.Menu(top, tearoff=0)
 def define_col(col):
-    print(col, frame.bbox(rec))
     c = []
-
     for i in range(len(frame.bbox(rec))): c.append(int(100*frame.bbox(rec)[i]/pic.size[i%2]))
     col_ft[col] = {'coord': (c[0], c[1], c[2], c[3])}
-
-    print(col_ft)
 
 def add_col():
     root = tk.Toplevel(top)
@@ -86,6 +82,16 @@ frame.bind("<Button-3>", onRightClick)
 frame.pack(side="top", fill="both", expand=True)
 
 def onSaveClick():
+    if 'model name' not in col_ft: 
+        showinfo('Alert', 'Please add the column "model name".')
+        return
+    if 'date' not in col_ft: 
+        showinfo('Alert', 'Please add the column "date".')
+        return
+    if 'total' not in col_ft: 
+        showinfo('Alert', 'Please add the column "total".')
+        return
+        
     data = {}
     col_ft['created'] = str(datetime.datetime.now())
     if os.path.isfile('template.json'): 
@@ -98,6 +104,7 @@ def onSaveClick():
 
     fname = str(max(f)+1) if f else '1'
     data[fname] = col_ft
+        
     with open('template.json', 'w') as fp: json.dump(data, fp)
     shutil.copyfile(path, 'templates/'+fname)
     showinfo('Alert', 'Template Saved!')

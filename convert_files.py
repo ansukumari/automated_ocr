@@ -36,14 +36,12 @@ def isRightTemp(dic):
 def forceTemp(path, tname):
     temp = {}
     with open('template.json', 'r') as fp: temp = json.load(fp)
-    print(temp)
     pic = Image.open(path)
     result = getRes(temp[tname], pic)
     saveData(result, path)
 
 def getRes(data, pic):
     result = {}
-    print(data)
     # 3. crop pic using dimentions in template and save
     for key in data:
         if key == 'created': continue
@@ -68,7 +66,6 @@ def saveData(result, root_path):
     data.append(result)
     with open('result.json', 'w') as fp: json.dump(data, fp, sort_keys=True, indent=4)
     os.rename(root_path, 'processed/' + result['file'])
-    print('done')
 
 def read(path):
     result = {}
@@ -81,18 +78,18 @@ def read(path):
     # 2. read template.json one by one
     with open('template.json', 'r') as fp:
         templates = json.load(fp)
+        if not templates: raise ValueError('No template found.')
 
         # Iterate through all templates
         for key in templates:
             data = templates[key]
             result = getRes(data, pic)
-            print(json.dumps(result, indent=2))
             if isRightTemp(result): 
-                print(path, 'matched template')#, templates.index(data))
+                result['template'] = 'Template'+str(key)
                 break
             result = {}
-            for _ in range(1000): pass        
-    # result = {}
+            # wait before making the next iteration of requests
+            for _ in range(1000): pass  
     if result: saveData(result, path)
 
     return "done"
