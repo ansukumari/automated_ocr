@@ -3,7 +3,7 @@ import tkinter as tk, os, json
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import messagebox as mb
-from convert_files import read, forceTemp
+from codes.convert_files import read, forceTemp
 
 def getText():
     import pandas as pd
@@ -14,7 +14,7 @@ def getText():
     pd.set_option('display.width', 1000)
 
     data = []
-    with open('result.json', 'r') as fp:
+    with open('output/result.json', 'r') as fp:
         data = json.load(fp)
 
     keys = [key for key in data[0]] 
@@ -56,7 +56,7 @@ def showTemps():
 
     data = {}
     try:
-        with open('template.json', 'r') as fp: data = json.load(fp)
+        with open('output/template.json', 'r') as fp: data = json.load(fp)
         for k in data: lb.insert('end', '{:>20}     |      {:20}'.format('Template '+k, data[k]['created'].split(' ')[0]))
     except: pass
 
@@ -81,9 +81,9 @@ def showTemps():
             if sure != 'yes': return
             os.unlink('templates/'+fname)
             data = {}
-            with open('template.json', 'r') as fp: data = json.load(fp)
+            with open('output/template.json', 'r') as fp: data = json.load(fp)
             del data[fname]
-            with open('template.json', 'w') as fp: json.dump(data, fp)
+            with open('output/template.json', 'w') as fp: json.dump(data, fp)
             lb.delete(sel)
         except: mb.showinfo('Alert', 'Please select row first!')        
     tk.Button(top, text='Delete', command=delete).place(relx=0.75, rely=0.3, relwidth=0.2)
@@ -164,6 +164,7 @@ def execute():
     left = len(os.listdir(pathp1.cget('text')))
     pl.config(text='Processed: '+str(total-left))
     cpl.config(text='Cannot be processed: '+str(left))
+    refersh()
     
 tk.Button(p1, text='Execute', width=btn_width, command=execute).place(relx=col1, rely=row2)
 
@@ -184,8 +185,8 @@ cpl.pack()
 def showOutput(): 
     # nb.select(p3)
     import pandas
-    pandas.read_json("result.json").to_excel("output.xlsx", index=False)
-    os.system("libreoffice output.xlsx")
+    pandas.read_json("output/result.json").to_excel("output/output.xlsx", index=False)
+    os.system("libreoffice output/output.xlsx")
 tk.Button(p1, text='Show Output', width=btn_width, command=showOutput).place(relx=col1, rely=row4)
 
 
@@ -216,7 +217,7 @@ lst.bind('<Double-Button>', showPic)
 def refersh():
     lst.delete(0, 'end')
     for f in os.listdir(pathp2.cget('text')): lst.insert('end', f)
-def createTemp(): os.system('python create_temp.py')
+def createTemp(): os.system('python codes/create_temp.py')
 tk.Button(p2, text='Create', width=btn_width, command=createTemp).place(relx=col3, rely=row3+0.1)
 def assign():
     try: imname = lst.get(lst.curselection())

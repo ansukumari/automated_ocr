@@ -1,6 +1,6 @@
 from PIL import Image, ImageTk
 import tkinter as tk
-from detect_text import detect_text
+from .detect_text import detect_text
 from pdf2image import convert_from_path
 from tkinter.messagebox import showinfo
 import os, sys, json, re
@@ -35,9 +35,10 @@ def isRightTemp(dic):
 
 def forceTemp(path, tname):
     temp = {}
-    with open('template.json', 'r') as fp: temp = json.load(fp)
+    with open('output/template.json', 'r') as fp: temp = json.load(fp)
     pic = Image.open(path)
     result = getRes(temp[tname], pic)
+    result['template'] = 'Template'+str(tname)
     saveData(result, path)
 
 def getRes(data, pic):
@@ -61,10 +62,10 @@ def getRes(data, pic):
 def saveData(result, root_path):
     data = []
     result['file'] = root_path.rpartition('/')[2]
-    if os.path.isfile('result.json'): 
-        with open('result.json', 'r') as fp: data = json.load(fp)
+    if os.path.isfile('output/result.json'): 
+        with open('output/result.json', 'r') as fp: data = json.load(fp)
     data.append(result)
-    with open('result.json', 'w') as fp: json.dump(data, fp, sort_keys=True, indent=4)
+    with open('output/result.json', 'w') as fp: json.dump(data, fp, sort_keys=True, indent=4)
     os.rename(root_path, 'processed/' + result['file'])
 
 def read(path):
@@ -75,8 +76,8 @@ def read(path):
         path = 'img/out.jpg'
     pic = Image.open(path)
     
-    # 2. read template.json one by one
-    with open('template.json', 'r') as fp:
+    # 2. read output/template.json one by one
+    with open('output/template.json', 'r') as fp:
         templates = json.load(fp)
         if not templates: raise ValueError('No template found.')
 

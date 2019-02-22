@@ -30,7 +30,7 @@ cpic = ImageTk.PhotoImage(temp)
 crec = frame.create_image(0, 0, image=cpic)
 
 col_list = []
-with open('cols.json', 'r') as fp: col_list = json.load(fp)
+with open('output/cols.json', 'r') as fp: col_list = json.load(fp)
 col_ft = {}
 
 menu = tk.Menu(top, tearoff=0)
@@ -49,7 +49,7 @@ def add_col():
         col_list.append(col)
         define_col(col)
         menu.add_command(label=col, command=partial(define_col, col))
-        with open('cols.json', 'w') as fp: json.dump(col_list, fp)
+        with open('output/cols.json', 'w') as fp: json.dump(col_list, fp)
 
     b=tk.Button(root,text='Add Column',command=cleanup)
     b.pack()
@@ -94,8 +94,8 @@ def onSaveClick():
         
     data = {}
     col_ft['created'] = str(datetime.datetime.now())
-    if os.path.isfile('template.json'): 
-        with open('template.json', 'r') as fp: data = json.load(fp)
+    if os.path.isfile('output/template.json'): 
+        with open('output/template.json', 'r') as fp: data = json.load(fp)
     
     f = []
     for filenames in walk('templates'):
@@ -105,7 +105,7 @@ def onSaveClick():
     fname = str(max(f)+1) if f else '1'
     data[fname] = col_ft
         
-    with open('template.json', 'w') as fp: json.dump(data, fp)
+    with open('output/template.json', 'w') as fp: json.dump(data, fp)
     shutil.copyfile(path, 'templates/'+fname)
     showinfo('Alert', 'Template Saved!')
     top.destroy()
