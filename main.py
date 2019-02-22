@@ -1,5 +1,5 @@
 from tkinter import ttk
-import tkinter as tk, os, json
+import tkinter as tk, os, json, sys
 from PIL import Image, ImageTk
 from tkinter import filedialog
 from tkinter import messagebox as mb
@@ -184,7 +184,8 @@ def showOutput():
     # nb.select(p3)
     import pandas
     pandas.read_json("output/result.json").to_excel("output/output.xlsx", index=False)
-    os.system("libreoffice output/output.xlsx")
+    if sys.platform == 'linux': os.system("libreoffice output/output.xlsx")
+    else: os.system("start EXCEL.EXE output/output.xlsx")
 tk.Button(p1, text='Show Output', width=btn_width, command=showOutput).place(relx=col1, rely=row4)
 
 
